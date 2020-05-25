@@ -1,0 +1,214 @@
+---
+title: "Wine Quality"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Read Red wine data
+```{r}
+redwine = read.csv("C:/Users/Vagatabla0/Google Drive/NU/Course/Spring 2020/MSIT4223 Data Science for BI/Project 1/winequality-red.csv")
+```
+Summary, scatter plot, 
+```{r}
+summary (redwine)
+```
+```{r}
+cor(redwine)
+```
+```{r}
+boxplot(redwine[,1])
+boxplot(redwine[,2])
+boxplot(redwine[,3])
+boxplot(redwine[,4])
+boxplot(redwine[,5])
+boxplot(redwine[,6])
+boxplot(redwine[,7])
+boxplot(redwine[,8])
+boxplot(redwine[,9])
+boxplot(redwine[,10])
+boxplot(redwine[,11])
+```
+
+```{r}
+plot (redwine[1:8],lower.panel=NULL)
+```
+#pH
+```{r}
+plot(redwine$fixed.acidity,redwine$pH)
+plot(redwine$volatile.acidity,redwine$pH)
+plot(redwine$citric.acid,redwine$pH)
+plot(redwine$residual.sugar,redwine$pH)
+plot(redwine$chlorides,redwine$pH)
+plot(redwine$free.sulfur.dioxide,redwine$pH)
+plot(redwine$total.sulfur.dioxide,redwine$pH)
+plot(redwine$density,redwine$pH)
+plot(redwine$quality,redwine$pH)
+plot(redwine$sulphates,redwine$pH)
+plot(redwine$alcohol,redwine$pH)
+```
+
+
+
+# quality ~ . scatter plot
+```{r}
+names(redwine)
+plot(redwine$fixed.acidity,redwine$quality)
+plot(redwine$volatile.acidity,redwine$quality)
+plot(redwine$citric.acid,redwine$quality)
+plot(redwine$residual.sugar,redwine$quality)
+plot(redwine$chlorides,redwine$quality)
+plot(redwine$free.sulfur.dioxide,redwine$quality)
+plot(redwine$total.sulfur.dioxide,redwine$quality)
+plot(redwine$density,redwine$quality)
+plot(redwine$pH,redwine$quality)
+plot(redwine$sulphates,redwine$quality)
+plot(redwine$alcohol,redwine$quality)
+
+```
+#alcohol
+```{r}
+plot(redwine$fixed.acidity,redwine$alcohol)
+plot(redwine$volatile.acidity,redwine$alcohol)
+plot(redwine$citric.acid,redwine$alcohol)
+plot(redwine$residual.sugar,redwine$alcohol)
+plot(redwine$chlorides,redwine$alcohol)
+plot(redwine$free.sulfur.dioxide,redwine$alcohol)
+plot(redwine$total.sulfur.dioxide,redwine$alcohol)
+plot(redwine$density,redwine$alcohol)
+plot(redwine$pH,redwine$alcohol)
+plot(redwine$sulphates,redwine$alcohol)
+plot(redwine$quality,redwine$alcohol)
+```
+
+
+
+
+# sulphates ~ .
+```{r}
+plot(redwine$fixed.acidity,redwine$sulphates)
+plot(redwine$volatile.acidity,redwine$sulphates)
+plot(redwine$citric.acid,redwine$sulphates)
+plot(redwine$residual.sugar,redwine$sulphates)
+plot(redwine$chlorides,redwine$sulphates)
+plot(redwine$free.sulfur.dioxide,redwine$sulphates)
+plot(redwine$total.sulfur.dioxide,redwine$sulphates)
+plot(redwine$density,redwine$sulphates)
+plot(redwine$pH,redwine$sulphates)
+plot(redwine$quality,redwine$sulphates)
+plot(redwine$alcohol,redwine$sulphates)
+
+```
+
+
+```{r}
+library(car)
+fit = lm (quality~., redwine)
+summary(fit)
+vif(fit)
+plot(fit)
+
+```
+# which of the predictors is significant?
+# 1.fixed.acidity
+```{r}
+summary(lm(quality~fixed.acidity, redwine))
+```
+# 2.volatile.acidity
+```{r}
+summary(lm(quality~volatile.acidity, redwine))
+```
+# 3.citric.acid 
+```{r}
+summary(lm(quality~citric.acid, redwine))
+```
+# 4.residual.sugar 
+```{r}
+summary(lm(quality~residual.sugar , redwine))
+```
+# 5.chlorides
+```{r}
+summary(lm(quality~chlorides, redwine))
+```
+# 6.free.sulfur.dioxide
+```{r}
+summary(lm(quality~free.sulfur.dioxide, redwine))
+```
+# 7.total.sulfur.dioxide 
+```{r}
+summary(lm(quality~total.sulfur.dioxide , redwine))
+```
+# 8.density
+```{r}
+summary(lm(quality~density, redwine))
+```
+# 9.pH
+```{r}
+summary(lm(quality~pH, redwine))
+```
+# 10.sulphates
+```{r}
+summary(lm(quality~sulphates, redwine))
+```
+# 11.alcohol
+```{r}
+summary(lm(quality~alcohol, redwine))
+```
+# Drop 1
+```{r}
+drop1(fit, test ="F")
+```
+# backward stepwise, drop: density, fixed acidity, residual.sugar, citric.acid
+```{r}
+step(fit)
+```
+```{r}
+fit2 = lm(quality ~ volatile.acidity + chlorides + free.sulfur.dioxide + 
+    total.sulfur.dioxide + pH + sulphates + alcohol, redwine)
+summary(fit2)
+```
+
+
+
+# Lasso model
+```{r}
+library(glmnet)
+x = model.matrix(quality~., redwine)
+
+fit.cv=cv.glmnet(x,redwine$quality, alpha=1)
+
+best_lam=fit.cv$lambda.min
+
+best_lam
+
+lasso_best= glmnet(x,redwine$quality, alpha=1, lambda = best_lam)
+
+coef(lasso_best)
+```
+```{r}
+fit_white_log = lm(quality ~ fixed.acidity + volatile.acidity + citric.acid + residual.sugar + log(chlorides) + free.sulfur.dioxide + log(total.sulfur.dioxide) + density + pH + sulphates + alcohol, redwine)
+
+summary(fit_white_log)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
